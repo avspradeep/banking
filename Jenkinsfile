@@ -3,7 +3,9 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "pradeeproy66/banking:latest"
-        KUBE_CONFIG = credentials('kubeconfig-creds')
+        DOCKER_USER = "pradeeproy66"
+        DOCKER_PASS = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"
+        KUBE_CONFIG = credentials('kubeconfig-creds') // Keep this secure
     }
 
     stages {
@@ -27,17 +29,11 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                        docker login -u $DOCKER_USER -p $DOCKER_PASS
-                        docker push ${DOCKER_IMAGE}
-                        docker logout
-                    '''
-                }
+                sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push ${DOCKER_IMAGE}
+                    docker logout
+                '''
             }
         }
 
@@ -52,11 +48,3 @@ pipeline {
     }
 
     post {
-        success {
-            echo "✅ Build and Deployment Successful!"
-        }
-        failure {
-            echo "❌ Build/Deployment Failed!"
-        }
-    }
-}
