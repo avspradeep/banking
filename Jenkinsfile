@@ -2,41 +2,37 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "fundme-app"
-        IMAGE_TAG = "latest"
+        DOCKER_IMAGE = "pradeeproy66/banking:latest" // your DockerHub username
+        KUBE_CONFIG = credentials('kubeconfig-id')  // upload your kubeconfig in Jenkins credentials
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'master',
-                    url: 'https://github.com/avspradeep/banking.git'
+                git url: 'https://github.com/avspradeep/banking.git', branch: 'master'
             }
         }
 
         stage('Build & Test') {
             steps {
-                sh 'mvn clean install'
+                sh './mvnw clean install'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh """
-                    echo "$PASS" | docker login -u "$USER" --password-stdin
-                    docker build -t docker.io/$USER/$IMAGE_NAME:$IMAGE_TAG .
-                    """
-                }
+                sh "docker build -t $DOCKER_IMAGE ."
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
+                                                 usernameVariable: 'DOCKER_USER',
+                                                 passwordVariable: 'DOCKER_PASS')]) {
                     sh """
-                    echo "$PASS" | docker login -u "$USER" --password-stdin
-                    docker push docker.io/$USER/$IMAGE_NAME:$IMAGE_TAG
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push $DOCKER_IMAGE
                     """
                 }
             }
@@ -44,29 +40,20 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withKubeConfig([credentialsId: 'kubeconfig-creds']) {
-                    sh """
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    """
+                withEnv(["KUBECONFIG=$KUBE_CONFIG"]) {
+                    sh 'kubectl apply -f k8s/deployment.yaml'
+                    sh 'kubectl apply -f k8s/service.yaml'
                 }
-            }
-        }
-
-        stage('Smoke Test') {
-            steps {
-                sh 'kubectl get pods -o wide'
-                sh 'kubectl get svc'
             }
         }
     }
 
     post {
         success {
-            echo '✅ Deployment Successful!'
+            echo "✅ Build and Deployment Successful!"
         }
         failure {
-            echo '❌ Build/Deployment Failed!'
+            echo "❌ Build/Deployment Failed!"
         }
     }
 }
