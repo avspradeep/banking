@@ -32,11 +32,11 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh """
+                    sh '''
                         docker login -u $DOCKER_USER -p $DOCKER_PASS
                         docker push ${DOCKER_IMAGE}
                         docker logout
-                    """
+                    '''
                 }
             }
         }
