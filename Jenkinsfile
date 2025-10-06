@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = "pradeeproy66/banking:latest"
         DOCKER_USER = "pradeeproy66"
         DOCKER_PASS = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"
-        KUBE_CONFIG = credentials('kubeconfig-creds') // Keep this secure
+        KUBE_CONFIG = "/var/lib/jenkins/.kube/config" // full path to your kubeconfig file
     }
 
     stages {
@@ -30,7 +30,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                     docker push ${DOCKER_IMAGE}
                     docker logout
                 '''
@@ -48,3 +48,11 @@ pipeline {
     }
 
     post {
+        success {
+            echo "✅ Build and Deployment Successful!"
+        }
+        failure {
+            echo "❌ Build/Deployment Failed!"
+        }
+    }
+}
