@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "pradeeproy66/banking:latest"
-        DOCKER_USER = "pradeeproy66"
-        DOCKER_PASS = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"
-        KUBE_CONFIG = "/var/lib/jenkins/.kube/config" // full path to your kubeconfig file
+        DOCKER_USER  = "pradeeproy66"
+        DOCKER_PASS  = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"
+        KUBE_CONFIG  = "/var/lib/jenkins/.kube/config"
     }
 
     stages {
@@ -17,7 +17,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh 'sh ./mvnw clean install'
+                sh './mvnw clean install'
             }
         }
 
@@ -34,6 +34,13 @@ pipeline {
                     docker push ${DOCKER_IMAGE}
                     docker logout
                 '''
+            }
+        }
+
+        stage('Test kubectl') {
+            steps {
+                sh 'which kubectl'
+                sh 'kubectl version --client'
             }
         }
 
