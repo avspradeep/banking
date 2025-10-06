@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: banking
+  template:
+    metadata:
+      labels:
+        app: banking
+    spec:
+      containers:
+      - name: banking
+        image: your-dockerhub-username/banking:latest
+        ports:
+        - containerPort: 8080
