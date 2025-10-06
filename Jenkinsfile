@@ -15,7 +15,6 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                // Ensure mvnw runs with sh explicitly
                 sh 'sh ./mvnw clean install'
             }
         }
@@ -27,15 +26,16 @@ pipeline {
         }
 
         stage('Push Docker Image') {
+            environment {
+                DOCKER_USER = credentials('dockerhub-creds').username
+                DOCKER_PASS = credentials('dockerhub-creds').password
+            }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                                 usernameVariable: 'DOCKER_USER',
-                                                 passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker push ${DOCKER_IMAGE}
-                    """
-                }
+                sh '''
+                    docker login -u $DOCKER_USER -p $DOCKER_PASS
+                    docker push ${DOCKER_IMAGE}
+                    docker logout
+                '''
             }
         }
 
