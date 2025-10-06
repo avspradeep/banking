@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "pradeeproy66/banking:latest" // your DockerHub username
-        KUBE_CONFIG = credentials('kubeconfig-id')  // upload your kubeconfig in Jenkins credentials
+        KUBE_CONFIG = credentials('kubeconfig-creds')  // upload your kubeconfig in Jenkins credentials
     }
 
     stages {
