@@ -26,16 +26,18 @@ pipeline {
         }
 
         stage('Push Docker Image') {
-            environment {
-                DOCKER_USER = credentials('dockerhub-creds').username
-                DOCKER_PASS = credentials('dockerhub-creds').password
-            }
             steps {
-                sh '''
-                    docker login -u $DOCKER_USER -p $DOCKER_PASS
-                    docker push ${DOCKER_IMAGE}
-                    docker logout
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        docker login -u $DOCKER_USER -p $DOCKER_PASS
+                        docker push ${DOCKER_IMAGE}
+                        docker logout
+                    """
+                }
             }
         }
 
