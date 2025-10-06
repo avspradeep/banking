@@ -15,7 +15,8 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh './mvnw clean install'
+                // Use sh explicitly to avoid permission issues with mvnw
+                sh 'sh ./mvnw clean install'
             }
         }
 
@@ -31,7 +32,7 @@ pipeline {
                                                  usernameVariable: 'DOCKER_USER',
                                                  passwordVariable: 'DOCKER_PASS')]) {
                     sh """
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                         docker push $DOCKER_IMAGE
                     """
                 }
@@ -50,10 +51,3 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and Deployment Successful!"
-        }
-        failure {
-            echo "❌ Build/Deployment Failed!"
-        }
-    }
-}
