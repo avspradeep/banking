@@ -4,8 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = "pradeeproy66/banking:latest"
         DOCKER_USER  = "pradeeproy66"
-        DOCKER_PASS  = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"
-        KUBE_CONFIG  = "/var/lib/jenkins/.kube/config"
+        DOCKER_PASS  = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"  // Hardcoded password
+        KUBE_CONFIG  = "/home/ubuntu/.kube/config"  // Updated path for VM2
     }
 
     stages {
@@ -42,14 +42,17 @@ pipeline {
             steps {
                 sh 'which kubectl'
                 sh 'kubectl version --client'
+                sh 'kubectl get nodes'  // Test cluster connection
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 withEnv(["KUBECONFIG=${KUBE_CONFIG}"]) {
+                    sh 'kubectl create namespace banking --dry-run=client -o yaml | kubectl apply -f -'
                     sh 'kubectl apply -f k8s/deployment.yaml'
                     sh 'kubectl apply -f k8s/service.yaml'
+                    sh 'kubectl get all -n banking'  // Verify deployment
                 }
             }
         }
@@ -58,6 +61,12 @@ pipeline {
     post {
         success {
             echo "✅ Build and Deployment Successful!"
+            sh '''
+                echo "Deployment Status:"
+                kubectl get deployments -n banking
+                kubectl get services -n banking
+                kubectl get pods -n banking
+            '''
         }
         failure {
             echo "❌ Build/Deployment Failed!"
