@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "pradeeproy66/banking:latest" // your DockerHub username
-        KUBE_CONFIG = credentials('kubeconfig-creds')  // upload your kubeconfig in Jenkins credentials
+        DOCKER_IMAGE = "pradeeproy66/banking:latest"
+        KUBE_CONFIG = credentials('kubeconfig-creds')
     }
 
     stages {
@@ -15,14 +15,14 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                // Use sh explicitly to avoid permission issues with mvnw
+                // Ensure mvnw runs with sh explicitly
                 sh 'sh ./mvnw clean install'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t $DOCKER_IMAGE ."
+                sh "docker build -t ${DOCKER_IMAGE} ."
             }
         }
 
@@ -33,7 +33,7 @@ pipeline {
                                                  passwordVariable: 'DOCKER_PASS')]) {
                     sh """
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker push $DOCKER_IMAGE
+                        docker push ${DOCKER_IMAGE}
                     """
                 }
             }
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                withEnv(["KUBECONFIG=$KUBE_CONFIG"]) {
+                withEnv(["KUBECONFIG=${KUBE_CONFIG}"]) {
                     sh 'kubectl apply -f k8s/deployment.yaml'
                     sh 'kubectl apply -f k8s/service.yaml'
                 }
@@ -51,3 +51,10 @@ pipeline {
 
     post {
         success {
+            echo "✅ Build and Deployment Successful!"
+        }
+        failure {
+            echo "❌ Build/Deployment Failed!"
+        }
+    }
+}
