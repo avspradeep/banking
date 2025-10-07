@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = "pradeeproy66/banking:latest"
         DOCKER_USER  = "pradeeproy66"
         DOCKER_PASS  = "dckr_pat_Wvga4VUsa6SAEatxyphfK4cvk_g"  // Hardcoded password
-        KUBE_CONFIG  = "/home/ubuntu/.kube/config"  // Updated path for VM2
+        KUBE_CONFIG  = "/var/lib/jenkins/.kube/config"  // Updated path for VM2
     }
 
     stages {
