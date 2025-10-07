@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: banking-deployment
+  namespace: banking   # Added namespace
 spec:
   replicas: 2
   selector:
@@ -14,6 +15,6 @@ spec:
     spec:
       containers:
       - name: banking
-        image: your-dockerhub-username/banking:latest
+        image: pradeeproy66/banking:latest  # Updated Docker image
         ports:
-        - containerPort: 8080
+        - containerPort: 8082   # Updated port to match your app
